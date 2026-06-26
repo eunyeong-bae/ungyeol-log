@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config()
 
-import app from './app';
+import app from './app.js';
 
 
 // 환경변수에 PORT 값이 설정되어 있지 않으면 기본값으로 4000번 포트를 사용
