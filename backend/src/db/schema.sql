@@ -6,10 +6,10 @@ CREATE TABLE birth_profiles (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   name VARCHAR(50) NOT NULL,
-  birth_year INTEGER NOT NULL,
-  birth_month INTEGER NOT NULL,
-  birth_day INTEGER NOT NULL,
-  birth_hour INTEGER,
+  birth_year INTEGER NOT NULL CHECK (birth_year BETWEEN 1900 AND 2100),
+  birth_month INTEGER NOT NULL CHECK (birth_month BETWEEN 1 AND 12),
+  birth_day INTEGER NOT NULL CHECK (birth_day BETWEEN 1 AND 31),
+  birth_hour INTEGER CHECK (birth_hour BETWEEN 0 AND 23),
   gender VARCHAR(10) NOT NULL CHECK (gender IN ('male', 'female')),
   is_lunar BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -36,4 +36,11 @@ CREATE POLICY "본인 프로필만 접근" ON birth_profiles
   FOR ALL USING (auth.uid() = user_id);
 
 CREATE POLICY "본인 해석만 접근" ON saju_readings
-  FOR ALL USING (auth.uid() = user_id);
+  FOR ALL USING (
+    auth.uid() = user_id
+    AND EXISTS (
+        SELECT 1 FROM birth_profiles
+        WHERE birth_profiles.id = saju_readings.birth_profile_id
+        AND birth_profiles.user_id = auth.uid()
+    )
+);
