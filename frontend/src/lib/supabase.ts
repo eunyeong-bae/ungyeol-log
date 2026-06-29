@@ -7,4 +7,8 @@ if(!supabaseUrl || !supabasePublishableKey) {
     throw new Error('Supabase URL or Publishable Key is not defined in environment variables');
 }
 
-export const supabase = createClient(supabaseUrl, supabasePublishableKey);
+export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
+    auth: {
+        flowType: 'pkce'
+    }
+});
