@@ -6,16 +6,24 @@ function PrivateRoute() {
     const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
     
     useEffect(() => {
+        let isMounted = true;
+
         const checkUser = async () => {
-            const { data: { user}} = await supabase.auth.getUser();
-            setIsLoggedIn(!!user);
+            try{
+                const { data: { user } } = await supabase.auth.getUser();
+                if(isMounted) setIsLoggedIn(!!user);
+            }catch {
+                if(isMounted) setIsLoggedIn(false);
+            }
         }
         checkUser();
+
+        return () => { isMounted = false}
     }, [])
 
     if(isLoggedIn === null) return <div>Loading...</div>;
 
-    return isLoggedIn ? <Outlet /> : <Navigate to="/login" />;
+    return isLoggedIn ? <Outlet /> : <Navigate to="/login" replace />;
 }
 
 export default PrivateRoute

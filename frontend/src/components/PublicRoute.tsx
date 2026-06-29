@@ -6,15 +6,24 @@ function PublicRoute() {
     const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
 
     useEffect(() => {
+        let isMounted = true;
+
         const checkUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            setIsLoggedIn(!!user);
+            try{
+                const { data: { user } } = await supabase.auth.getUser();
+                if(isMounted) setIsLoggedIn(!!user);
+            }catch(error) {
+                if(isMounted) setIsLoggedIn(false);
+            }
+
         }
         checkUser();
+
+        return () => {isMounted = false}
     }, []);
 
     if(isLoggedIn === null) return <div>Loading...</div>;
-    return isLoggedIn ? <Navigate to="/home" /> : <Outlet />;
+    return isLoggedIn ? <Navigate to="/home" replace /> : <Outlet />;
 }
 
 export default PublicRoute;
