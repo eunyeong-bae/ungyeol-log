@@ -12,7 +12,7 @@ function PublicRoute() {
             try{
                 const { data: { user } } = await supabase.auth.getUser();
                 if(isMounted) setIsLoggedIn(!!user);
-            }catch(error) {
+            }catch {
                 if(isMounted) setIsLoggedIn(false);
             }
 
