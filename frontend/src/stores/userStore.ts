@@ -20,10 +20,14 @@ export const useUserStore = create<UserState>()(
             isAuthLoading: true,
             selectedProfileId: null,
 
-            setUser: (user) => set({ user, isAuthLoading: false}),
+            setUser: (user) => set(
+                user 
+                    ? {user, isAuthLoading: false}
+                    : { user: null, selectedProfileId: null, isAuthLoading: false}
+            ),
             setAuthLoading: (isAuthLoading) => set({isAuthLoading}),
             setSelectedProfileId: (selectedProfileId) => set({ selectedProfileId}),
-            clearUser: () => set({ user:null, selectedProfileId: null}),
+            clearUser: () => set({ user:null, selectedProfileId: null, isAuthLoading: false}),
         }),
         {
             name: 'ungyeol-user-storage',
