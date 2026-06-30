@@ -4,11 +4,13 @@ import PublicRoute from './components/PublicRoute'
 import PrivateRoute from './components/PrivateRoute'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
+import AuthProvider from './providers/AuthProvider'
 
 function App() {
 
   return (
-     <Routes>
+    <AuthProvider>
+       <Routes>
       <Route element={<PublicRoute />}>
         <Route path="/login" element={<LoginPage />} />
       </Route>
@@ -19,6 +21,7 @@ function App() {
 
       <Route path="*" element={<Navigate to="/login" replace />} />
      </Routes>
+    </AuthProvider>
   )
 }
 
