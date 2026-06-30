@@ -14,7 +14,6 @@ function AuthProvider ({children} : {children: React.ReactNode}) {
         const initSession = async() => {
             try{
                 const {data: {session}} = await supabase.auth.getSession();
-                console.log("🚀 ~ initSession ~ session:", session)
                 if(isMounted) setUser(session?.user ?? null);
             }catch{
                 if(isMounted) setAuthLoading(false);
