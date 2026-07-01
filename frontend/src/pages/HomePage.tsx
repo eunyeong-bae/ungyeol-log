@@ -55,15 +55,16 @@ function HomePage() {
         {/* 카테고리 카드 */}
         <section className="grid grid-cols-2 gap-3">
           {sectionItems.map((card) => (
-            <div
+            <button
               key={card.label}
-              className="bg-white rounded-xl p-4 shadow-sm flex flex-col gap-1 cursor-pointer hover:shadow-md transition-shadow"
+              type="button"
               onClick={() => navigate('/saju/new')}
+              className="bg-white rounded-xl p-4 shadow-sm flex flex-col gap-1 text-left hover:shadow-md transition-shadow"
             >
               <span className="text-2xl">{card.emoji}</span>
               <p className="text-sm font-medium text-gray-800">{card.label}</p>
               <p className="text-xs text-gray-400">{card.desc}</p>
-            </div>
+            </button>
           ))}
         </section>
 

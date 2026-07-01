@@ -16,7 +16,7 @@ function SettingsPage() {
         <h1 className="text-xl font-bold text-gray-800">설정</h1>
         <p className="text-gray-400 text-sm">준비 중입니다.</p>
         <button 
-          className="bg-red-500 text-white py-2 px-4 rounded-1g hover:bg-red-600 transition-colors"
+          className="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors"
           onClick={handleLogout}
         >로그아웃</button>
       </div>

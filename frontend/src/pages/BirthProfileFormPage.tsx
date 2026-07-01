@@ -1,7 +1,7 @@
 // pages/BirthProfileFormPage.tsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { RelationshipType } from '@ungyeol-log/shared';
+import type { BirthProfileInput, RelationshipType } from '@ungyeol-log/shared';
 
 interface BirthProfileForm {
   name: string;
@@ -86,6 +86,8 @@ function BirthProfileFormPage() {
       newErrors.relationship = '관계를 선택해주세요';
     } else if (form.relationship === '직접입력' && !form.customRelationship.trim()) {
       newErrors.relationship = '관계를 직접 입력해주세요';
+    } else if(form.relationship === '직접입력' && form.customRelationship.trim().length > 20) {
+      newErrors.relationship = '관계는 20자 이내로 입력해주세요';
     }
 
     const year = Number(form.birthYear);
@@ -136,22 +138,23 @@ function BirthProfileFormPage() {
     if (!validate()) return;
 
     // 제출 데이터 구성
-    const submitData = {
+    const submitData : BirthProfileInput= {
       name: form.name.trim(),
       relationship: form.relationship === '직접입력'
         ? form.customRelationship.trim()
         : form.relationship,
-      birth_year: Number(form.birthYear),
-      birth_month: Number(form.birthMonth),
-      birth_day: Number(form.birthDay),
-      birth_hour: form.birthHour !== '' ? Number(form.birthHour) : null,
-      birth_minute: form.birthMinute !== '' ? Number(form.birthMinute) : null,
-      gender: form.gender,
-      is_lunar: form.isLunar,
+      birthInfo: {
+        year: Number(form.birthYear),
+        month: Number(form.birthMonth),
+        day: Number(form.birthDay),
+        hour: form.birthHour !== '' ? Number(form.birthHour) : null,
+        minute: form.birthMinute !== '' ? Number(form.birthMinute) : null,
+        gender: form.gender,
+        isLunar: form.isLunar,
+      }
     };
 
     // 나중에 Ablecity API 호출 + TanStack Query useMutation으로 대체
-    console.log('제출 데이터:', submitData);
     navigate('/result', { state: submitData });
   };
 
@@ -332,24 +335,28 @@ function BirthProfileFormPage() {
             </label>
             <div className="flex gap-3">
               {GENDER.map((g) => (
+               <div key={g} className="flex-1">
+                <input
+                  type="radio"
+                  id={`gender-${g}`}       // id 추가
+                  name="gender"
+                  value={g}
+                  checked={form.gender === g}
+                  onChange={handleChange}
+                  className="sr-only peer"  // hidden → sr-only peer
+                />
                 <label
-                  key={g}
-                  className={`flex-1 flex items-center justify-center py-2.5 rounded-lg border cursor-pointer text-sm transition-colors
+                  htmlFor={`gender-${g}`}  // input의 id와 연결
+                  className={`flex items-center justify-center py-2.5 rounded-lg border cursor-pointer text-sm transition-colors
+                    peer-focus-visible:ring-2 peer-focus-visible:ring-purple-400 peer-focus-visible:ring-offset-1
                     ${form.gender === g
                       ? 'border-purple-500 bg-purple-50 text-purple-700 font-medium'
                       : 'border-gray-300 text-gray-600 hover:border-purple-300'
                     }`}
                 >
-                  <input
-                    type="radio"
-                    name="gender"
-                    value={g}
-                    checked={form.gender === g}
-                    onChange={handleChange}
-                    className="hidden"
-                  />
                   {g === 'male' ? '남성' : '여성'}
                 </label>
+              </div>
               ))}
             </div>
             {errors.gender && <p className="text-red-500 text-xs">{errors.gender}</p>}

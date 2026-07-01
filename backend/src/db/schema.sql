@@ -6,7 +6,7 @@ CREATE TABLE birth_profiles (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   name VARCHAR(50) NOT NULL,
-  relationship VARCHAR(20),
+  relationship VARCHAR(20) NOT NULL,
   birth_year INTEGER NOT NULL CHECK (birth_year BETWEEN 1900 AND 2100),
   birth_month INTEGER NOT NULL CHECK (birth_month BETWEEN 1 AND 12),
   birth_day INTEGER NOT NULL CHECK (birth_day BETWEEN 1 AND 31),

@@ -15,7 +15,7 @@ export interface BirthInfo {
   day: number;
   hour: number | null; // 선택 필드 — null이면 "모름"
   minute: number | null; // 선택 필드 — null이면 "모름"
-  gender: 'male' | 'female';
+  gender: 'male' | 'female' | '';
   isLunar: boolean;
 }
 
