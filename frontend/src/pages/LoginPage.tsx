@@ -5,7 +5,7 @@ function LoginPage() {
         await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo:`${window.location.origin}/home` // 로그인 후 리디렉션할 URL
+                redirectTo:`${window.location.origin}/` // 로그인 후 리디렉션할 URL
             }
             
         })

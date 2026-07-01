@@ -6,7 +6,7 @@ function PublicRoute() {
     const isAuthLoading = useIsAuthLoading();
 
     if(isAuthLoading) return <div>Loading...</div>;
-    return user ? <Navigate to="/home" replace /> : <Outlet />;
+    return user ? <Navigate to="/" replace /> : <Outlet />;
 }
 
 export default PublicRoute;
