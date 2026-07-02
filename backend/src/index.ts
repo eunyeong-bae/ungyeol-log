@@ -1,5 +1,4 @@
-import dotenv from 'dotenv';
-dotenv.config()
+import 'dotenv/config';  // import 문으로 바꾸면 가장 먼저 실행됨
 
 import app from './app.js';
 
