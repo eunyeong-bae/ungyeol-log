@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import birthProfilesRouter from './routes/birthProfiles.js';
 
 const app = express();
 
@@ -14,5 +15,8 @@ app.use(express.json());
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', message: '운영로그 서버 정상 동작 중' })
 })
+
+// birthProfiles route
+app.use('/birth-profiles', birthProfilesRouter );
 
 export default app;
