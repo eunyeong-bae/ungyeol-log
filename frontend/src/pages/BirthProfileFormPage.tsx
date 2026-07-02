@@ -2,6 +2,8 @@
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import type { BirthProfileInput } from '@ungyeol-log/shared';
+import { useUser } from '../stores/userStore';
+import { useBirthProfileMutation } from '../services/hooks/useBirthProfileMutation';
 
 // react-hook-form이 관리할 폼 필드 타입
 interface BirthProfileFormData {
@@ -23,6 +25,8 @@ const RELATIONSHIP_OPTIONS = [
 
 function BirthProfileFormPage() {
   const navigate = useNavigate();
+  const user = useUser();
+  const {mutate : createBirthProfile, isPending, error} = useBirthProfileMutation();
 
   const {
     register,
@@ -67,6 +71,18 @@ function BirthProfileFormPage() {
         isLunar: data.isLunar,
       },
     };
+
+    if(user) {
+      // 로그인 상태 -> DB 저장 후 결과 페이지로
+      createBirthProfile(submitData, {
+        onSuccess: (saveProfile) => {
+          navigate('/result', { state: {...submitData, profileId: saveProfile.id}})
+        }
+      })
+    } else {
+      // 비로그인 -> 바로 결과 페이지로
+      navigate('/result', { state: submitData });
+    }
 
     navigate('/result', { state: submitData });
   };
@@ -304,6 +320,14 @@ function BirthProfileFormPage() {
             {errors.gender && <p className="text-red-500 text-xs">{errors.gender.message}</p>}
           </div>
 
+          {/* API 에러 메시지 */}
+          {error && (
+            <p className="text-red-500 text-sm text-center mt-2">
+              {error.message}
+            </p>
+          )}
+
+
           {/* 버튼 */}
           <div className="flex gap-3 mt-2">
             <button
@@ -315,9 +339,10 @@ function BirthProfileFormPage() {
             </button>
             <button
               type="submit"
-              className="flex-1 py-3 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
+              disabled={isPending}
+              className="flex-1 py-3 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              만세력 보기
+              {isPending ? '저장 중...' : '만세력 보기'}
             </button>
           </div>
 
