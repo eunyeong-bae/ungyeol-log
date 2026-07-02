@@ -1,160 +1,73 @@
 // pages/BirthProfileFormPage.tsx
-import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import type { BirthProfileInput, RelationshipType } from '@ungyeol-log/shared';
+import type { BirthProfileInput } from '@ungyeol-log/shared';
 
-interface BirthProfileForm {
+// react-hook-form이 관리할 폼 필드 타입
+interface BirthProfileFormData {
   name: string;
-  relationship: RelationshipType | '';
-  customRelationship: string; // 직접입력 시 사용
-  birthYear: string;
-  birthMonth: string;
-  birthDay: string;
-  birthHour: string;
-  birthMinute: string;
-  gender: 'male' | 'female' | '';
+  relationship: string;
+  customRelationship: string;
+  birthYear: number;
+  birthMonth: number;
+  birthDay: number;
+  birthHour: number | null;
+  birthMinute: number | null;
+  gender: 'male' | 'female';
   isLunar: boolean;
 }
-
-interface FormErrors {
-  name?: string;
-  relationship?: string;
-  birthYear?: string;
-  birthMonth?: string;
-  birthDay?: string;
-  birthHour?: string;
-  birthMinute?: string;
-  gender?: string;
-}
-
-const INITIAL_FORM: BirthProfileForm = {
-  name: '',
-  relationship: '',
-  customRelationship: '',
-  birthYear: '',
-  birthMonth: '',
-  birthDay: '',
-  birthHour: '',
-  birthMinute: '',
-  gender: '',
-  isLunar: false,
-};
 
 const RELATIONSHIP_OPTIONS = [
   '본인', '배우자', '연인', '부모', '자녀', '친구', '직접입력'
 ] as const;
 
-const GENDER = ['male', 'female'] as const;
-
 function BirthProfileFormPage() {
-  const [form, setForm] = useState<BirthProfileForm>(INITIAL_FORM);
-  const [errors, setErrors] = useState<FormErrors>({});
   const navigate = useNavigate();
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: undefined }));
-  };
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    clearErrors,
+    formState: { errors },
+  } = useForm<BirthProfileFormData>({
+    mode: 'onBlur',
+    defaultValues: {
+      name: '',
+      relationship: '',
+      customRelationship: '',
+      birthYear: undefined,
+      birthMonth: undefined,
+      birthDay: undefined,
+      birthHour: null,
+      birthMinute: null,
+      gender: undefined,
+      isLunar: false,
+    },
+  });
 
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target;
-    setForm((prev) => ({ ...prev, [name]: checked }));
-  };
+  // 관계 선택 버튼 클릭 시 watch로 현재 값 확인 + setValue로 직접 세팅
+  const selectedRelationship = watch('relationship');
+  const selectedGender = watch('gender');
 
-  const handleRelationshipSelect = (value: string) => {
-    setForm((prev) => ({
-      ...prev,
-      relationship: value as RelationshipType,
-      customRelationship: value !== '직접입력' ? '' : prev.customRelationship,
-    }));
-    setErrors((prev) => ({ ...prev, relationship: undefined }));
-  };
-
-  const validate = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    if (!form.name.trim()) {
-      newErrors.name = '이름을 입력해주세요';
-    } else if (form.name.trim().length > 50) {
-      newErrors.name = '이름은 50자 이내로 입력해주세요';
-    }
-
-    if (!form.relationship) {
-      newErrors.relationship = '관계를 선택해주세요';
-    } else if (form.relationship === '직접입력' && !form.customRelationship.trim()) {
-      newErrors.relationship = '관계를 직접 입력해주세요';
-    } else if(form.relationship === '직접입력' && form.customRelationship.trim().length > 20) {
-      newErrors.relationship = '관계는 20자 이내로 입력해주세요';
-    }
-
-    const year = Number(form.birthYear);
-    if (!form.birthYear) {
-      newErrors.birthYear = '태어난 연도를 입력해주세요';
-    } else if (year < 1900 || year > 2100) {
-      newErrors.birthYear = '1900~2100 사이의 연도를 입력해주세요';
-    }
-
-    const month = Number(form.birthMonth);
-    if (!form.birthMonth) {
-      newErrors.birthMonth = '태어난 월을 입력해주세요';
-    } else if (month < 1 || month > 12) {
-      newErrors.birthMonth = '1~12 사이의 월을 입력해주세요';
-    }
-
-    const day = Number(form.birthDay);
-    if (!form.birthDay) {
-      newErrors.birthDay = '태어난 일을 입력해주세요';
-    } else if (day < 1 || day > 31) {
-      newErrors.birthDay = '1~31 사이의 일을 입력해주세요';
-    }
-
-    if (form.birthHour !== '') {
-      const hour = Number(form.birthHour);
-      if (hour < 0 || hour > 23) {
-        newErrors.birthHour = '0~23 사이의 시간을 입력해주세요';
-      }
-    }
-
-    if (form.birthMinute !== '') {
-      const minute = Number(form.birthMinute);
-      if (minute < 0 || minute > 59) {
-        newErrors.birthMinute = '0~59 사이의 분을 입력해주세요';
-      }
-    }
-
-    if (!form.gender) {
-      newErrors.gender = '성별을 선택해주세요';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validate()) return;
-
-    // 제출 데이터 구성
-    const submitData : BirthProfileInput= {
-      name: form.name.trim(),
-      relationship: form.relationship === '직접입력'
-        ? form.customRelationship.trim()
-        : form.relationship,
+  const onSubmit = (data: BirthProfileFormData) => {
+    const submitData: BirthProfileInput = {
+      name: data.name.trim(),
+      relationship: data.relationship === '직접입력'
+        ? data.customRelationship.trim()
+        : data.relationship,
       birthInfo: {
-        year: Number(form.birthYear),
-        month: Number(form.birthMonth),
-        day: Number(form.birthDay),
-        hour: form.birthHour !== '' ? Number(form.birthHour) : null,
-        minute: form.birthMinute !== '' ? Number(form.birthMinute) : null,
-        gender: form.gender,
-        isLunar: form.isLunar,
-      }
+        year: Number(data.birthYear),
+        month: Number(data.birthMonth),
+        day: Number(data.birthDay),
+        hour: data.birthHour !== null ? Number(data.birthHour) : null,
+        minute: data.birthMinute !== null ? Number(data.birthMinute) : null,
+        gender: data.gender,
+        isLunar: data.isLunar,
+      },
     };
 
-    // 나중에 Ablecity API 호출 + TanStack Query useMutation으로 대체
     navigate('/result', { state: submitData });
   };
 
@@ -162,18 +75,21 @@ function BirthProfileFormPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
 
       {/* 헤더 */}
-      <header className="flex items-center px-6 py-4 bg-white shadow-sm">
-        <button
-          onClick={() => navigate(-1)}
-          className="text-gray-500 hover:text-purple-600 transition-colors mr-4"
-        >
-          ← 
-        </button>
-        <h1 className="text-lg font-bold text-purple-600">🔮 사주 정보 입력</h1>
+      <header className="bg-white shadow-sm">
+        <div className="w-full max-w-lg mx-auto px-6 py-4 flex items-center">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="text-gray-500 hover:text-purple-600 transition-colors mr-4"
+          >
+            ← 뒤로
+          </button>
+          <h1 className="text-lg font-bold text-purple-600">🔮 사주 정보 입력</h1>
+        </div>
       </header>
 
-      <div className="flex-1 px-6 py-8">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6 max-w-md mx-auto" noValidate>
+      <div className="w-full max-w-lg mx-auto px-6 py-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6" noValidate>
 
           {/* 이름 */}
           <div className="flex flex-col gap-1">
@@ -182,13 +98,14 @@ function BirthProfileFormPage() {
             </label>
             <input
               type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
               placeholder="이름을 입력해주세요"
               className="border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+              {...register('name', {
+                required: '이름을 입력해주세요',
+                maxLength: { value: 20, message: '이름은 20자 이내로 입력해주세요' },
+              })}
             />
-            {errors.name && <p className="text-red-500 text-xs">{errors.name}</p>}
+            {errors.name && <p className="text-red-500 text-xs">{errors.name.message}</p>}
           </div>
 
           {/* 관계 */}
@@ -196,14 +113,25 @@ function BirthProfileFormPage() {
             <label className="text-sm font-medium text-gray-700">
               관계 <span className="text-red-500">*</span>
             </label>
+            {/* register로 hidden input 등록 — 버튼 클릭 시 setValue로 값 세팅 */}
+            <input
+              type="hidden"
+              {...register('relationship', { required: '관계를 선택해주세요' })}
+            />
             <div className="flex flex-wrap gap-2">
               {RELATIONSHIP_OPTIONS.map((option) => (
                 <button
                   key={option}
                   type="button"
-                  onClick={() => handleRelationshipSelect(option)}
+                  onClick={() => {
+                    setValue('relationship', option, { shouldValidate: true });
+                    if(option !== '직접입력') {
+                      setValue('customRelationship', '', { shouldValidate: false });
+                      clearErrors('customRelationship');
+                    }
+                  }}
                   className={`px-3 py-1.5 rounded-full text-sm border transition-colors
-                    ${form.relationship === option
+                    ${selectedRelationship === option
                       ? 'border-purple-500 bg-purple-50 text-purple-700 font-medium'
                       : 'border-gray-300 text-gray-600 hover:border-purple-300'
                     }`}
@@ -212,19 +140,29 @@ function BirthProfileFormPage() {
                 </button>
               ))}
             </div>
-            {/* 직접입력 선택 시 텍스트 필드 노출 */}
-            {form.relationship === '직접입력' && (
+            {selectedRelationship === '직접입력' && (
               <input
                 type="text"
-                name="customRelationship"
-                value={form.customRelationship}
-                onChange={handleChange}
-                placeholder="관계를 직접 입력해주세요"
+                placeholder="관계를 직접 입력해주세요 (10자 이내)"
                 className="border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                {...register('customRelationship', {
+                  validate: (value) => {
+                    if (selectedRelationship === '직접입력' && !value.trim()) {
+                      return '관계를 직접 입력해주세요';
+                    }
+                    if (value.length > 10) {
+                      return '10자 이내로 입력해주세요';
+                    }
+                    return true;
+                  },
+                })}
               />
             )}
             {errors.relationship && (
-              <p className="text-red-500 text-xs">{errors.relationship}</p>
+              <p className="text-red-500 text-xs">{errors.relationship.message}</p>
+            )}
+            {errors.customRelationship && (
+              <p className="text-red-500 text-xs">{errors.customRelationship.message}</p>
             )}
           </div>
 
@@ -237,40 +175,46 @@ function BirthProfileFormPage() {
               <div className="flex flex-col flex-1">
                 <input
                   type="number"
-                  name="birthYear"
-                  value={form.birthYear}
-                  onChange={handleChange}
                   placeholder="연도"
                   className="border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  {...register('birthYear', {
+                    required: '연도를 입력해주세요',
+                    min: { value: 1900, message: '1900~2100 사이로 입력해주세요' },
+                    max: { value: 2100, message: '1900~2100 사이로 입력해주세요' },
+                  })}
                 />
                 {errors.birthYear && (
-                  <p className="text-red-500 text-xs mt-1">{errors.birthYear}</p>
+                  <p className="text-red-500 text-xs mt-1">{errors.birthYear.message}</p>
                 )}
               </div>
               <div className="flex flex-col w-20">
                 <input
                   type="number"
-                  name="birthMonth"
-                  value={form.birthMonth}
-                  onChange={handleChange}
                   placeholder="월"
                   className="border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  {...register('birthMonth', {
+                    required: '월을 입력해주세요',
+                    min: { value: 1, message: '1~12 사이로 입력해주세요' },
+                    max: { value: 12, message: '1~12 사이로 입력해주세요' },
+                  })}
                 />
                 {errors.birthMonth && (
-                  <p className="text-red-500 text-xs mt-1">{errors.birthMonth}</p>
+                  <p className="text-red-500 text-xs mt-1">{errors.birthMonth.message}</p>
                 )}
               </div>
               <div className="flex flex-col w-20">
                 <input
                   type="number"
-                  name="birthDay"
-                  value={form.birthDay}
-                  onChange={handleChange}
                   placeholder="일"
                   className="border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  {...register('birthDay', {
+                    required: '일을 입력해주세요',
+                    min: { value: 1, message: '1~31 사이로 입력해주세요' },
+                    max: { value: 31, message: '1~31 사이로 입력해주세요' },
+                  })}
                 />
                 {errors.birthDay && (
-                  <p className="text-red-500 text-xs mt-1">{errors.birthDay}</p>
+                  <p className="text-red-500 text-xs mt-1">{errors.birthDay.message}</p>
                 )}
               </div>
             </div>
@@ -280,11 +224,9 @@ function BirthProfileFormPage() {
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
-              name="isLunar"
               id="isLunar"
-              checked={form.isLunar}
-              onChange={handleCheckboxChange}
               className="w-4 h-4 accent-purple-500"
+              {...register('isLunar')}
             />
             <label htmlFor="isLunar" className="text-sm text-gray-700 cursor-pointer">
               음력으로 입력
@@ -297,32 +239,34 @@ function BirthProfileFormPage() {
               태어난 시간
               <span className="text-gray-400 text-xs ml-1">(선택, 모르면 비워두세요)</span>
             </label>
-            <div className="flex gap-2 items-center">
+            <div className="flex gap-2 items-start">
               <div className="flex flex-col flex-1">
                 <input
                   type="number"
-                  name="birthHour"
-                  value={form.birthHour}
-                  onChange={handleChange}
                   placeholder="시 (0~23)"
                   className="border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  {...register('birthHour', {
+                    min: { value: 0, message: '0~23 사이로 입력해주세요' },
+                    max: { value: 23, message: '0~23 사이로 입력해주세요' },
+                  })}
                 />
                 {errors.birthHour && (
-                  <p className="text-red-500 text-xs mt-1">{errors.birthHour}</p>
+                  <p className="text-red-500 text-xs mt-1">{errors.birthHour.message}</p>
                 )}
               </div>
-              <span className="text-gray-400 text-sm">:</span>
+              <span className="text-gray-400 text-sm mt-3">:</span>
               <div className="flex flex-col flex-1">
                 <input
                   type="number"
-                  name="birthMinute"
-                  value={form.birthMinute}
-                  onChange={handleChange}
                   placeholder="분 (0~59)"
                   className="border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  {...register('birthMinute', {
+                    min: { value: 0, message: '0~59 사이로 입력해주세요' },
+                    max: { value: 59, message: '0~59 사이로 입력해주세요' },
+                  })}
                 />
                 {errors.birthMinute && (
-                  <p className="text-red-500 text-xs mt-1">{errors.birthMinute}</p>
+                  <p className="text-red-500 text-xs mt-1">{errors.birthMinute.message}</p>
                 )}
               </div>
             </div>
@@ -334,32 +278,30 @@ function BirthProfileFormPage() {
               성별 <span className="text-red-500">*</span>
             </label>
             <div className="flex gap-3">
-              {GENDER.map((g) => (
-               <div key={g} className="flex-1">
-                <input
-                  type="radio"
-                  id={`gender-${g}`}       // id 추가
-                  name="gender"
-                  value={g}
-                  checked={form.gender === g}
-                  onChange={handleChange}
-                  className="sr-only peer"  // hidden → sr-only peer
-                />
-                <label
-                  htmlFor={`gender-${g}`}  // input의 id와 연결
-                  className={`flex items-center justify-center py-2.5 rounded-lg border cursor-pointer text-sm transition-colors
-                    peer-focus-visible:ring-2 peer-focus-visible:ring-purple-400 peer-focus-visible:ring-offset-1
-                    ${form.gender === g
-                      ? 'border-purple-500 bg-purple-50 text-purple-700 font-medium'
-                      : 'border-gray-300 text-gray-600 hover:border-purple-300'
-                    }`}
-                >
-                  {g === 'male' ? '남성' : '여성'}
-                </label>
-              </div>
+              {(['male', 'female'] as const).map((g) => (
+                <div key={g} className="flex-1">
+                  <input
+                    type="radio"
+                    id={`gender-${g}`}
+                    value={g}
+                    className="sr-only peer"
+                    {...register('gender', { required: '성별을 선택해주세요' })}
+                  />
+                  <label
+                    htmlFor={`gender-${g}`}
+                    className={`flex items-center justify-center py-2.5 rounded-lg border cursor-pointer text-sm transition-colors
+                      peer-focus-visible:ring-2 peer-focus-visible:ring-purple-400 peer-focus-visible:ring-offset-1
+                      ${selectedGender === g
+                        ? 'border-purple-500 bg-purple-50 text-purple-700 font-medium'
+                        : 'border-gray-300 text-gray-600 hover:border-purple-300'
+                      }`}
+                  >
+                    {g === 'male' ? '남성' : '여성'}
+                  </label>
+                </div>
               ))}
             </div>
-            {errors.gender && <p className="text-red-500 text-xs">{errors.gender}</p>}
+            {errors.gender && <p className="text-red-500 text-xs">{errors.gender.message}</p>}
           </div>
 
           {/* 버튼 */}
