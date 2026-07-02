@@ -17,8 +17,8 @@ export const createBirthProfile = async(input: BirthProfileInput): Promise<Birth
     });
 
     if(!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || '저장 실패했습니다.');
+        const error = await response.json().catch(() => null);
+        throw new Error(error?.error || '저장 실패했습니다.');
     }
 
     const {data} = await response.json();

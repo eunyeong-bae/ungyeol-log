@@ -83,8 +83,6 @@ function BirthProfileFormPage() {
       // 비로그인 -> 바로 결과 페이지로
       navigate('/result', { state: submitData });
     }
-
-    navigate('/result', { state: submitData });
   };
 
   return (

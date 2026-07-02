@@ -24,10 +24,18 @@ router.post('/', async(req: Request, res: Response) => {
         const {name, relationship, birthInfo } = req.body;
 
         //4. 필수 필드 검증
-        if(!name || !relationship || !birthInfo) {
-            res.status(400).json({error: 'Missing required fields'});
-            return;
-        }
+        if (
+            !name ||
+            !relationship ||
+            !birthInfo ||
+            birthInfo.year == null ||
+            birthInfo.month == null ||
+            birthInfo.day == null ||
+            !birthInfo.gender
+            ) {
+                res.status(400).json({ error: '필수 데이터가 누락되었습니다.' });
+                return;
+            }
 
         //5. DB INSERT
         const { data, error: dbError} = await supabase
