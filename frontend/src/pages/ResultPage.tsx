@@ -1,5 +1,5 @@
 // pages/ResultPage.tsx
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { BirthProfileInput, SajuChartResult, PillarDetail } from '@ungyeol-log/shared';
 import { useUser } from '../stores/userStore';
@@ -37,17 +37,69 @@ interface TermInfo {
 
 // 용어 설명 모달 (Claude API 연동 예정 자리)
 function TermModal({ term, context, onClose }: TermInfo & { onClose: () => void }) {
+  const modalRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    // 1. 모달 열리면 닫기 버튼으로 포커스 이동
+    closeButtonRef.current?.focus();
+
+    // 2. Escape 키로 닫기
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+
+      // 3. Tab 포커스를 모달 안에 가두기 (focus trap)
+      if (e.key === 'Tab' && modalRef.current) {
+        const focusables = modalRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusables.length === 0) return;
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-end justify-center z-50" onClick={onClose}>
+    <div
+      className="fixed inset-0 bg-black/50 flex items-end justify-center z-50"
+      onClick={onClose}
+    >
       <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="term-modal-title"
         className="bg-white rounded-t-2xl w-full max-w-lg px-6 py-8 flex flex-col gap-4"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-gray-800">
+          <h3 id="term-modal-title" className="text-lg font-bold text-gray-800">
             <span className="text-purple-600">{term}</span> 이란?
           </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+          <button
+            ref={closeButtonRef}
+            onClick={onClose}
+            aria-label="닫기"
+            className="text-gray-400 hover:text-gray-600 text-xl focus-visible:ring-2 focus-visible:ring-purple-400 rounded"
+          >
+            ✕
+          </button>
         </div>
         <p className="text-sm text-gray-500">{context}</p>
         <div className="bg-purple-50 rounded-xl p-4 text-sm text-gray-700 leading-relaxed">

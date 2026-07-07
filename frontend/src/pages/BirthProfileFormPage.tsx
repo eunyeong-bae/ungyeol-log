@@ -60,7 +60,6 @@ function BirthProfileFormPage() {
   const selectedGender = watch('gender');
 
   const onSubmit = (data: BirthProfileFormData) => {
-    console.log("🚀 ~ onSubmit ~ data:", data)
     const submitData: BirthProfileInput = {
       name: data.name.trim(),
       relationship: data.relationship === '직접입력'
