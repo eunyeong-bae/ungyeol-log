@@ -29,6 +29,9 @@ importers:
       express:
         specifier: ^5.2.1
         version: 5.2.1(supports-color@5.5.0)
+      ssaju:
+        specifier: ^0.2.0
+        version: 0.2.0
     devDependencies:
       '@types/cors':
         specifier: ^2.8.19
@@ -1900,6 +1903,10 @@ packages:
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
     engines: {node: '>=0.10.0'}
+
+  ssaju@0.2.0:
+    resolution: {integrity: sha512-2QnxbIyqnoCFxYl/QxpWmUz3BXKsalMceToh5d2OJRhY9KF+TZFSS0lKwOdwhWwSuCNCQb0OQQCO78XJja6Brw==}
+    engines: {node: '>=18'}
 
   stackback@0.0.2:
     resolution: {integrity: sha512-1XMJE5fQo1jGH6Y/7ebnwPOBEkIEnT4QF32d5R1+VXdXveM0IBMJt8zfaxX1P3QhVwrYe+576+jkANtSS2mBbw==}
@@ -3901,6 +3908,8 @@ snapshots:
       semver: 7.8.5
 
   source-map-js@1.2.1: {}
+
+  ssaju@0.2.0: {}
 
   stackback@0.0.2: {}
 
