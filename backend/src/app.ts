@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import birthProfilesRouter from './routes/birthProfiles.js';
+import sajuRouter from './routes/saju.js';
 
 const app = express();
 
@@ -18,5 +19,7 @@ app.get('/health', (req, res) => {
 
 // birthProfiles route
 app.use('/birth-profiles', birthProfilesRouter );
+
+app.use('/saju', sajuRouter);
 
 export default app;
