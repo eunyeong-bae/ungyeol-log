@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import type { BirthProfileInput } from '@ungyeol-log/shared';
 import { useUser } from '../stores/userStore';
 import { useBirthProfileMutation } from '../services/hooks/useBirthProfileMutation';
+import { useSajuCalculation } from '../services/hooks/useSajuCalculation';
 
 // react-hook-form이 관리할 폼 필드 타입
 interface BirthProfileFormData {
@@ -26,7 +27,10 @@ const RELATIONSHIP_OPTIONS = [
 function BirthProfileFormPage() {
   const navigate = useNavigate();
   const user = useUser();
-  const {mutate : createBirthProfile, isPending, error} = useBirthProfileMutation();
+  const {mutate : saveBirthProfile, isPending: isSaving, error: saveError} = useBirthProfileMutation();
+  const { mutate: calculateSaju, isPending: isCalculating, error: calcError } = useSajuCalculation();
+
+  const isPending = isCalculating || isSaving;
 
   const {
     register,
@@ -72,17 +76,25 @@ function BirthProfileFormPage() {
       },
     };
 
-    if(user) {
-      // 로그인 상태 -> DB 저장 후 결과 페이지로
-      createBirthProfile(submitData, {
-        onSuccess: (saveProfile) => {
-          navigate('/result', { state: {...submitData, profileId: saveProfile.id}})
+     // 1. 사주 계산 (로그인 여부 무관하게 항상)
+    calculateSaju(submitData.birthInfo, {
+      onSuccess: (sajuResult) => {
+        if (user) {
+          // 2-a: 로그인 → DB 저장 → 성공하면 결과 페이지로
+          saveBirthProfile(submitData, {
+            onSuccess: (savedProfile) => {
+              navigate('/result', {
+                state: { ...submitData, profileId: savedProfile.id, sajuResult },
+              });
+            },
+          });
+        } else {
+          // 2-b: 비로그인 → 저장 없이 바로 결과 페이지로
+          navigate('/result', { state: { ...submitData, sajuResult } });
         }
-      })
-    } else {
-      // 비로그인 -> 바로 결과 페이지로
-      navigate('/result', { state: submitData });
-    }
+      },
+    });
+
   };
 
   return (
@@ -318,11 +330,9 @@ function BirthProfileFormPage() {
             {errors.gender && <p className="text-red-500 text-xs">{errors.gender.message}</p>}
           </div>
 
-          {/* API 에러 메시지 */}
-          {error && (
-            <p className="text-red-500 text-sm text-center mt-2">
-              {error.message}
-            </p>
+           {/* 사주 계산 API 에러 표시 (새로 추가) */}
+          {(calcError || saveError) && (
+            <p className="text-red-500 text-sm text-center">{calcError?.message || saveError?.message}</p>
           )}
 
 
@@ -331,7 +341,8 @@ function BirthProfileFormPage() {
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="flex-1 py-3 border border-gray-300 text-gray-600 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+              disabled={isPending}
+              className="flex-1 py-3 border border-gray-300 text-gray-600 rounded-lg text-sm hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
               취소
             </button>
@@ -340,7 +351,7 @@ function BirthProfileFormPage() {
               disabled={isPending}
               className="flex-1 py-3 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isPending ? '저장 중...' : '만세력 보기'}
+              {isPending ? '계산 중...' : '만세력 보기'}
             </button>
           </div>
 
