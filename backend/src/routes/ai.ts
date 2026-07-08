@@ -1,11 +1,18 @@
 import {Router, Request, Response} from 'express';
 import {GoogleGenAI} from '@google/genai';
 import { supabase } from '../lib/supabase.js';
+import rateLimit from 'express-rate-limit';
+
+const aiRateLimit = rateLimit({
+  windowMs: 60 * 1000, // 1분
+  max: 10,             // IP당 1분에 10회
+  message: { error: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.' },
+});
 
 const router = Router();
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-router.post('/term-explain', async(req: Request, res: Response) => {
+router.post('/term-explain', aiRateLimit, async(req: Request, res: Response) => {
     try{
         const {term, context, sajuContext} = req.body;
 
@@ -42,7 +49,7 @@ router.post('/term-explain', async(req: Request, res: Response) => {
 });
 
 // POST /ai/fortune — AI 운세 해석
-router.post('/fortune', async (req: Request, res: Response) => {
+router.post('/fortune', aiRateLimit, async (req: Request, res: Response) => {
   try {
     const { sajuResult, category, profileId } = req.body;
 
