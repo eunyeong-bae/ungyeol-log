@@ -22,7 +22,6 @@ function FortunePage() {
   const state = location.state as
     | (BirthProfileInput & { profileId?: string; sajuResult: SajuChartResult })
     | null;
-  console.log("🚀 ~ FortunePage ~ state:", state)
 
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [fortune, setFortune] = useState<string | null>(null);
