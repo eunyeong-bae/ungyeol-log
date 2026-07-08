@@ -24,3 +24,27 @@ export const createBirthProfile = async(input: BirthProfileInput): Promise<Birth
     const {data} = await response.json();
     return data;
 }
+
+// 기존 createBirthProfile 아래에 추가
+export const getBirthProfiles = async (): Promise<any[]> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('로그인이 필요합니다.');
+
+  const response = await fetch(`${import.meta.env.VITE_API_URL}/birth-profiles`, {
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+    },
+  });
+
+  if (!response.ok) {
+    let message = '프로필 목록 조회에 실패했습니다.';
+    try {
+      const error = await response.json();
+      message = error.error || message;
+    } catch {}
+    throw new Error(message);
+  }
+
+  const { data } = await response.json();
+  return data;
+};
