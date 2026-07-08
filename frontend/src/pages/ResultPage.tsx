@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { BirthProfileInput, SajuChartResult, PillarDetail } from '@ungyeol-log/shared';
 import { useUser } from '../stores/userStore';
+import { explainTerm } from '../services/api/ai';
 
 const ELEMENT_BG: Record<string, string> = {
   목: 'bg-green-100 text-green-800',
@@ -35,38 +36,41 @@ interface TermInfo {
   context: string;
 }
 
-// 용어 설명 모달 (Claude API 연동 예정 자리)
-function TermModal({ term, context, onClose }: TermInfo & { onClose: () => void }) {
+// 용어 설명 모달 (Gemini API 연동 예정 자리)
+function TermModal({
+  term,
+  context,
+  sajuContext,
+  onClose,
+}: {
+  term: string;
+  context: string;
+  sajuContext?: string;
+  onClose: () => void;
+}) {
+  const [explanation, setExplanation] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
+  // 기존 키보드 접근성 코드 유지
   useEffect(() => {
-    // 1. 모달 열리면 닫기 버튼으로 포커스 이동
     closeButtonRef.current?.focus();
 
-    // 2. Escape 키로 닫기
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-        return;
-      }
-
-      // 3. Tab 포커스를 모달 안에 가두기 (focus trap)
+      if (e.key === 'Escape') { onClose(); return; }
       if (e.key === 'Tab' && modalRef.current) {
         const focusables = modalRef.current.querySelectorAll<HTMLElement>(
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
         );
         if (focusables.length === 0) return;
-
         const first = focusables[0];
         const last = focusables[focusables.length - 1];
-
         if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault();
-          last.focus();
+          e.preventDefault(); last.focus();
         } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
+          e.preventDefault(); first.focus();
         }
       }
     };
@@ -74,6 +78,24 @@ function TermModal({ term, context, onClose }: TermInfo & { onClose: () => void 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
+
+  // AI 설명 요청
+  useEffect(() => {
+    const fetchExplanation = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const result = await explainTerm(term, context, sajuContext);
+        setExplanation(result);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'AI 설명 생성에 실패했습니다.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchExplanation();
+  }, [term, context, sajuContext]);
 
   return (
     <div
@@ -101,10 +123,17 @@ function TermModal({ term, context, onClose }: TermInfo & { onClose: () => void 
             ✕
           </button>
         </div>
-        <p className="text-sm text-gray-500">{context}</p>
-        <div className="bg-purple-50 rounded-xl p-4 text-sm text-gray-700 leading-relaxed">
-          <p className="text-purple-500 text-xs mb-2">🔮 AI 설명 (준비 중)</p>
-          <p>Claude API 연동 후 이 자리에 {term}에 대한 맞춤 설명이 표시됩니다.</p>
+        <p className="text-xs text-gray-400">{context}</p>
+
+        <div className="bg-purple-50 rounded-xl p-4 text-sm text-gray-700 leading-relaxed min-h-24">
+          {isLoading && (
+            <div className="flex items-center gap-2 text-purple-400">
+              <span className="animate-spin inline-block">🔮</span>
+              <span className="text-xs">AI가 설명을 생성하고 있어요...</span>
+            </div>
+          )}
+          {error && <p className="text-red-400 text-xs">{error}</p>}
+          {explanation && <p className="whitespace-pre-line">{explanation}</p>}
         </div>
       </div>
     </div>
@@ -234,6 +263,16 @@ function ResultPage() {
   const missingElements = Object.entries(sajuResult.fiveElements)
     .filter(([, count]) => count === 0)
     .map(([el]) => el);
+
+
+  // sajuContext: Gemini에 넘길 사주 요약 정보
+  const sajuContext = `
+    일간: ${sajuResult.dayStem}
+    사주: ${sajuResult.pillars.year} ${sajuResult.pillars.month} ${sajuResult.pillars.day} ${sajuResult.pillars.hour ?? '시주없음'}
+    오행: 목${sajuResult.fiveElements.목} 화${sajuResult.fiveElements.화} 토${sajuResult.fiveElements.토} 금${sajuResult.fiveElements.금} 수${sajuResult.fiveElements.수}
+    격국: ${sajuResult.advanced.geukguk}
+    용신: ${sajuResult.advanced.yongsin.join(', ')}
+    `.trim();
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -508,6 +547,7 @@ function ResultPage() {
         <TermModal
           term={selectedTerm.term}
           context={selectedTerm.context}
+          sajuContext={sajuContext}
           onClose={() => setSelectedTerm(null)}
         />
       )}

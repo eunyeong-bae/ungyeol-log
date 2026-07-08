@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import birthProfilesRouter from './routes/birthProfiles.js';
 import sajuRouter from './routes/saju.js';
+import aiRouter from './routes/ai.js';
 
 const app = express();
 
@@ -21,5 +22,8 @@ app.get('/health', (req, res) => {
 app.use('/birth-profiles', birthProfilesRouter );
 
 app.use('/saju', sajuRouter);
+
+// Gemini AI 사주 설명
+app.use('/ai', aiRouter);
 
 export default app;
