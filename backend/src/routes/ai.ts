@@ -3,17 +3,18 @@ import {GoogleGenAI} from '@google/genai';
 import { supabase } from '../lib/supabase.js';
 import rateLimit from 'express-rate-limit';
 
+
+const router = Router();
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
 const aiRateLimit = rateLimit({
   windowMs: 60 * 1000, // 1분
   max: 10,             // IP당 1분에 10회
   message: { error: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.' },
 });
 
-const router = Router();
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
 router.post('/term-explain', aiRateLimit, async(req: Request, res: Response) => {
-    try{
+  try{
         const {term, context, sajuContext} = req.body;
 
         if(!term){
@@ -39,7 +40,9 @@ router.post('/term-explain', aiRateLimit, async(req: Request, res: Response) => 
         const interaction = await ai.interactions.create({
             model:'gemini-2.5-flash',
             input: prompt,
-        });
+          }, 
+          { timeout: 30000}
+        );
 
         res.json({ explanation: interaction.output_text});
     }catch(error){
@@ -93,36 +96,50 @@ router.post('/fortune', aiRateLimit, async (req: Request, res: Response) => {
 `.trim();
 
     const interaction = await ai.interactions.create({
-      model: 'gemini-2.5-flash',
-      input: prompt,
-    });
+        model: 'gemini-2.5-flash',
+        input: prompt,
+      },
+      { timeout: 30000 }
+    );
 
     const content = interaction.output_text;
 
     // 로그인 사용자 + profileId 있으면 DB 저장
     let savedId: string | null = null;
 
+    // 프로필있는 지 체크 -> 저장 할지 말지 결정(비로그인은 없으니까)
     if (profileId) {
       const authHeader = req.headers.authorization;
       if (authHeader?.startsWith('Bearer ')) {
         const token = authHeader.split(' ')[1];
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-
+        // 토근으로 user 확인(요청한 사람 로그인된 유저인지 체크)
         if (!authError && user) {
-          const { data, error: dbError } = await supabase
-            .from('saju_readings')
-            .insert({
-              birth_profile_id: profileId,
-              user_id: user.id,
-              category,
-              content,
-              saju_data: sajuResult,
-            })
+          // 소유권 체크(profileId가 user 것인지 체크)
+          const { data: profile } = await supabase
+            .from('birth_profiles')
             .select('id')
+            .eq('id', profileId)
+            .eq('user_id', user.id)
             .single();
 
-          if (!dbError && data) {
-            savedId = data.id;
+          // 소유권 확인된 경우에만 삽입
+          if(profile) {
+            const { data, error: dbError } = await supabase
+              .from('saju_readings')
+              .insert({
+                birth_profile_id: profileId,
+                user_id: user.id,
+                category,
+                content,
+                saju_data: sajuResult,
+              })
+              .select('id')
+              .single();
+  
+            if (!dbError && data) {
+              savedId = data.id;
+            }
           }
         }
       }

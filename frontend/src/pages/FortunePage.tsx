@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import type { BirthProfileInput, SajuChartResult } from '@ungyeol-log/shared';
 import { getFortune } from '../services/api/ai';
 import { supabase } from '../lib/supabase';
+import { useUser } from '../stores/userStore';
 
 const CATEGORIES = [
   { key: 'overall', label: '종합운세', emoji: '🌟' },
@@ -16,6 +17,7 @@ const CATEGORIES = [
 type Category = typeof CATEGORIES[number]['key'];
 
 function FortunePage() {
+  const user = useUser();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -25,6 +27,7 @@ function FortunePage() {
 
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [fortune, setFortune] = useState<string | null>(null);
+  const [savedId, setSavedId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,6 +53,7 @@ function FortunePage() {
     setSelectedCategory(category);
     setFortune(null);
     setError(null);
+    setSavedId(null);
     setIsLoading(true);
 
     try {
@@ -57,7 +61,7 @@ function FortunePage() {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
 
-      const { content } = await getFortune(
+      const { content, savedId: id } = await getFortune(
         sajuResult,
         category,
         profileId,
@@ -65,6 +69,7 @@ function FortunePage() {
       );
 
       setFortune(content);
+      setSavedId(id);
     } catch (err) {
       setError(err instanceof Error ? err.message : '운세 해석 생성에 실패했습니다.');
     } finally {
@@ -145,14 +150,14 @@ function FortunePage() {
               </p>
             )}
 
-            {fortune && profileId && (
+            {fortune && savedId && (
               <p className="text-xs text-gray-400 text-right">보관함에 저장됐어요 ✓</p>
             )}
           </section>
         )}
 
         {/* 비로그인 안내 */}
-        {!profileId && (
+        {!user && (
           <div className="bg-purple-50 rounded-2xl p-4 text-sm text-purple-600 text-center">
             로그인하면 해석 결과가 보관함에 저장돼요
           </div>

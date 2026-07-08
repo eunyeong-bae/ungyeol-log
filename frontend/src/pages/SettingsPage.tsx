@@ -8,19 +8,22 @@ function SettingsPage() {
   const navigate = useNavigate();
   const { data: profiles, isLoading, error } = useBirthProfiles();
   const [loadingProfileId, setLoadingProfileId] = useState<string | null>(null);
+  const [calcError, setCalcError] = useState<string | null>(null);
 
   const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      navigate('/');
-    } catch {
-      console.error('로그아웃 실패');
+    const {error} = await supabase.auth.signOut();
+    if(error){
+      console.error('로그아웃 실패', error);
+      return;
     }
+    navigate('/');
   };
 
   // 프로필 클릭 → 사주 재계산 → FortunePage 이동
   const handleProfileClick = async (profile: any) => {
     setLoadingProfileId(profile.id);
+    setCalcError(null); //이전 에러 초기화
+
     try {
       const birthInfo = {
         year: profile.birth_year,
@@ -44,7 +47,7 @@ function SettingsPage() {
         },
       });
     } catch (err) {
-      console.error('사주 계산 오류:', err);
+      setCalcError('사주 계산에 실패했어요. 다시 시도해주세요.');
     } finally {
       setLoadingProfileId(null);
     }
@@ -97,6 +100,10 @@ function SettingsPage() {
                 사주 입력하러 가기 →
               </button>
             </div>
+          )}
+
+          {calcError && (
+            <p className="text-red-400 text-sm text-center py-2">{calcError}</p>
           )}
 
           {profiles?.map((profile) => (
