@@ -3,6 +3,7 @@ import cors from 'cors';
 import birthProfilesRouter from './routes/birthProfiles.js';
 import sajuRouter from './routes/saju.js';
 import aiRouter from './routes/ai.js';
+import helmet from 'helmet';
 
 const app = express();
 
@@ -10,11 +11,12 @@ const app = express();
 app.set('trust proxy', 1);
 
 //미들웨어 설정
+app.use(helmet());
 app.use(cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:5173',
     credentials: true
 }))
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 
 // health check route
 app.get('/health', (req, res) => {
@@ -23,9 +25,7 @@ app.get('/health', (req, res) => {
 
 // birthProfiles route
 app.use('/birth-profiles', birthProfilesRouter );
-
 app.use('/saju', sajuRouter);
-
 // Gemini AI 사주 설명
 app.use('/ai', aiRouter);
 
