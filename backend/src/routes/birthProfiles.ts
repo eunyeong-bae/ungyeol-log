@@ -69,4 +69,39 @@ router.post('/', async(req: Request, res: Response) => {
     }
 })
 
+// GET /birth-profiles — 내 프로필 목록 조회
+router.get('/', async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      res.status(401).json({ error: '인증 토큰이 없습니다.' });
+      return;
+    }
+    const token = authHeader.split(' ')[1];
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+      res.status(401).json({ error: '유효하지 않은 토큰입니다.' });
+      return;
+    }
+
+    const { data, error: dbError } = await supabase
+      .from('birth_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (dbError) {
+      res.status(500).json({ error: 'DB 조회에 실패했습니다.' });
+      return;
+    }
+
+    res.json({ data });
+
+  } catch (error) {
+    console.error('프로필 목록 조회 오류:', error);
+    res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
 export default router;
