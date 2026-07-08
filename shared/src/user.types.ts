@@ -1,4 +1,4 @@
-import type { BirthInfo, RelationshipType } from './saju.types';
+import type { BirthInfo, RelationshipType } from './saju.types.js';
 
 // 사용자 정보
 export interface User {
