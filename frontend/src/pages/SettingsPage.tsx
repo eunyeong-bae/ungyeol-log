@@ -63,6 +63,7 @@ function SettingsPage() {
         },
       });
     } catch (err) {
+      console.error('사주 계산 오류:', err);
       setCalcError('사주 계산에 실패했어요. 다시 시도해주세요.');
     } finally {
       setLoadingProfileId(null);
@@ -127,7 +128,7 @@ function SettingsPage() {
               key={profile.id}
               type="button"
               onClick={() => handleProfileClick(profile)}
-              disabled={loadingProfileId === profile.id}
+              disabled={loadingProfileId !== null}
               className="bg-white rounded-xl p-4 shadow-sm text-left flex items-center justify-between hover:shadow-md transition-shadow disabled:opacity-50"
             >
               <div className="flex flex-col gap-1">
