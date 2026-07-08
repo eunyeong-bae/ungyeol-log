@@ -61,11 +61,6 @@ router.post('/fortune', aiRateLimit, async (req: Request, res: Response) => {
   try {
     const { sajuResult, category, profileId } = req.body;
 
-    if (!sajuResult || !category) {
-      res.status(400).json({ error: '필수 데이터가 누락되었습니다.' });
-      return;
-    }
-
     const categoryLabels: Record<string, string> = {
       love: '애정운',
       money: '재물운',
@@ -74,6 +69,11 @@ router.post('/fortune', aiRateLimit, async (req: Request, res: Response) => {
       overall: '종합운세',
     };
 
+    if (!sajuResult || !category || !categoryLabels[category]) {
+      res.status(400).json({ error: '필수 데이터가 누락되었습니다.' });
+      return;
+    }
+    
     const categoryLabel = categoryLabels[category] || category;
 
     const prompt = `
