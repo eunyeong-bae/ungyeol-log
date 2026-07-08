@@ -1,0 +1,5 @@
+{
+  "buildCommand": "pnpm --filter @ungyeol-log/shared build && pnpm --filter frontend build",
+  "outputDirectory": "frontend/dist",
+  "installCommand": "pnpm install"
+}
