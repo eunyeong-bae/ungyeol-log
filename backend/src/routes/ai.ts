@@ -17,7 +17,7 @@ router.post('/term-explain', aiRateLimit, async(req: Request, res: Response) => 
   try{
         const {term, context, sajuContext} = req.body;
 
-        if(!term){
+        if(!term || !context){
             res.status(400).json({error: '용어가 누락되었습니다.'});
             return;
         }
