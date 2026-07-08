@@ -76,7 +76,13 @@ function SettingsPage() {
       {/* 헤더 */}
       <header className="bg-white shadow-sm">
         <div className="w-full max-w-lg mx-auto px-6 py-4 flex items-center justify-between">
-          <h1 className="text-lg font-bold text-purple-600" onClick={() => navigate('/')}>🔮 운결록</h1>
+          <button
+            type='button'
+            className="text-lg font-bold text-purple-600" 
+            onClick={() => navigate('/')}
+          >
+            🔮 운결록
+          </button>
           <button
             onClick={handleLogout}
             className="text-sm text-red-400 hover:text-red-600 transition-colors"

@@ -2,13 +2,15 @@ import {supabase} from '../lib/supabase';
 
 function LoginPage() {
     const handleGoogleLogin = async() => {
-        await supabase.auth.signInWithOAuth({
+        const {error} = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
                 redirectTo:`${window.location.origin}/` // 로그인 후 리디렉션할 URL
             }
-            
-        })
+        });
+        if(error){
+            console.error(error);
+        }
     }
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">

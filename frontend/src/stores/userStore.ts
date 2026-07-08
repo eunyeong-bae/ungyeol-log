@@ -23,7 +23,7 @@ export const useUserStore = create<UserState>()(
             setUser: (user) => set(
                 user 
                     ? {user, isAuthLoading: false}
-                    : { user: null, selectedProfileId: null, isAuthLoading: false}
+                    : { user: null, isAuthLoading: false}
             ),
             setAuthLoading: (isAuthLoading) => set({isAuthLoading}),
             setSelectedProfileId: (selectedProfileId) => set({ selectedProfileId}),

@@ -1,7 +1,23 @@
 import { supabase } from '../../lib/supabase';
-import type { BirthProfile, BirthProfileInput } from '@ungyeol-log/shared';
+import type { BirthProfileInput } from '@ungyeol-log/shared';
 
-export const createBirthProfile = async(input: BirthProfileInput): Promise<BirthProfile> => {
+interface BirthProfileRecord {
+  id: string;
+  user_id: string;
+  name: string;
+  relationship: string;
+  birth_year: number;
+  birth_month: number;
+  birth_day: number;
+  birth_hour: number | null;
+  birth_minute: number | null;
+  gender: 'male' | 'female';
+  is_lunar: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export const createBirthProfile = async(input: BirthProfileInput): Promise<BirthProfileRecord> => {
     //1. 현재 세션에서 access token 가져오기
     const {data: {session}} = await supabase.auth.getSession();
     if(!session) throw new Error('로그인이 필요합니다.');
