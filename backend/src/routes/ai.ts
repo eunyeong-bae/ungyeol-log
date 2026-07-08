@@ -44,6 +44,11 @@ router.post('/term-explain', aiRateLimit, async(req: Request, res: Response) => 
           { timeout: 30000}
         );
 
+        if (!interaction.output_text) {
+          res.status(502).json({ error: 'AI 응답 생성에 실패했습니다.' });
+          return;
+        }
+
         res.json({ explanation: interaction.output_text});
     }catch(error){
         console.error(`Gemini API 오류:`, error);
@@ -101,6 +106,11 @@ router.post('/fortune', aiRateLimit, async (req: Request, res: Response) => {
       },
       { timeout: 30000 }
     );
+
+    if (!interaction.output_text) {
+      res.status(502).json({ error: 'AI 응답 생성에 실패했습니다.' });
+      return;
+    }
 
     const content = interaction.output_text;
 
