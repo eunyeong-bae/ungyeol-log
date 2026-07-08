@@ -15,7 +15,12 @@ router.post('/calculate', async (req: Request, res: Response) => {
       birthInfo.year == null ||
       birthInfo.month == null ||
       birthInfo.day == null ||
-      !birthInfo.gender
+      !birthInfo.gender ||
+  birthInfo.month < 1 || birthInfo.month > 12 ||
+  birthInfo.day < 1 || birthInfo.day > 31 ||
+  birthInfo.year < 1900 || birthInfo.year > 2100 ||
+  (birthInfo.hour != null && (birthInfo.hour < 0 || birthInfo.hour > 23)) ||
+  (birthInfo.minute != null && (birthInfo.minute < 0 || birthInfo.minute > 59))
     ) {
       res.status(400).json({ error: '필수 데이터가 누락되었습니다.' });
       return;
