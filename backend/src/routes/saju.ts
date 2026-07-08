@@ -30,12 +30,12 @@ router.post('/calculate', async (req: Request, res: Response) => {
 
     // ssaju 계산
     const raw = calculateSaju({
-      year: birthInfo.year,
-      month: birthInfo.month,
-      day: birthInfo.day,
+      year: Math.floor(Number(birthInfo.year)),
+      month: Math.floor(Number(birthInfo.month)),
+      day: Math.floor(Number(birthInfo.day)),
       ...(hasHour && {
-        hour: birthInfo.hour,
-        minute: birthInfo.minute ?? 0,
+        hour: Math.floor(Number(birthInfo.hour)),
+        minute: Math.floor(Number(birthInfo.minute ?? 0)),
       }),
       gender: birthInfo.gender === 'male' ? '남' : '여',
       calendar: birthInfo.isLunar ? 'lunar' : 'solar',
