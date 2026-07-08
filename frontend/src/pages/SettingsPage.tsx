@@ -4,6 +4,22 @@ import { supabase } from '../lib/supabase';
 import { useBirthProfiles } from '../services/hooks/useBirthProfiles';
 import { calculateSaju } from '../services/api/saju';
 
+// SettingsPage.tsx 상단에 추가
+interface BirthProfileRow {
+  id: string;
+  user_id: string;
+  name: string;
+  relationship: string;
+  birth_year: number;
+  birth_month: number;
+  birth_day: number;
+  birth_hour: number | null;
+  birth_minute: number | null;
+  gender: 'male' | 'female';
+  is_lunar: boolean;
+  created_at: string;
+}
+
 function SettingsPage() {
   const navigate = useNavigate();
   const { data: profiles, isLoading, error } = useBirthProfiles();
@@ -20,7 +36,7 @@ function SettingsPage() {
   };
 
   // 프로필 클릭 → 사주 재계산 → FortunePage 이동
-  const handleProfileClick = async (profile: any) => {
+  const handleProfileClick = async (profile: BirthProfileRow) => {
     setLoadingProfileId(profile.id);
     setCalcError(null); //이전 에러 초기화
 
@@ -106,7 +122,7 @@ function SettingsPage() {
             <p className="text-red-400 text-sm text-center py-2">{calcError}</p>
           )}
 
-          {profiles?.map((profile) => (
+          {profiles?.map((profile: BirthProfileRow) => (
             <button
               key={profile.id}
               type="button"
